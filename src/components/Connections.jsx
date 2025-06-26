@@ -1,20 +1,22 @@
 import axios from "axios";
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { BASE_URL } from "../utils/constants";
-import { useEffect } from "react";
-import { connect, useDispatch, useSelector } from "react-redux";
 import { addConnections } from "../utils/conectionSlice";
 
 const Connections = () => {
   const connections = useSelector((store) => store.connections);
   const dispatch = useDispatch();
+  const [previewImg, setPreviewImg] = useState(null); // for image modal
+
   const fetchConnections = async () => {
     try {
-      const res = await axios.get(BASE_URL + "/user/connections", {
+      const res = await axios.get(`${BASE_URL}/user/connections`, {
         withCredentials: true,
       });
-      dispatch(addConnections(res.data.data));
+      dispatch(addConnections(res.data.connection));
     } catch (err) {
-      // Handle Error Case
+      console.error("Error fetching connections:", err);
     }
   };
 
@@ -22,41 +24,63 @@ const Connections = () => {
     fetchConnections();
   }, []);
 
-  if (!connections) return;
+  if (!connections) return null;
 
-  if (connections.length === 0) return <h1> No Connections Found</h1>;
+  if (connections.length === 0) {
+    return <h1 className="text-center my-10 text-lg text-gray-400">No Connections Found</h1>;
+  }
 
   return (
     <div className="text-center my-10">
-      <h1 className="text-bold text-white text-3xl">Connections</h1>
+      <h1 className="text-3xl font-semibold text-white mb-6">Connections</h1>
 
-      {connections.map((connection) => {
-        const { _id, firstName, lastName, photoUrl, age, gender, about } =
-          connection;
+      {connections.map((user) => {
+        const { _id, firstName, lastName, photoUrl, age, gender, about } = user;
+        const imageUrl = photoUrl?.startsWith("http") ? photoUrl : `${BASE_URL}${photoUrl}`;
 
         return (
           <div
             key={_id}
-            className=" flex m-4 p-4 rounded-lg bg-base-300 w-1/2 mx-auto"
+            className="flex items-center bg-base-300 rounded-lg shadow-md p-4 m-4 w-11/12 md:w-1/2 mx-auto"
           >
-            <div>
-              <img
-                alt="photo"
-                className="w-20 h-20 rounded-full object-cover"
-                src={photoUrl}
-              />
-            </div>
-            <div className="text-left mx-4 ">
-              <h2 className="font-bold text-xl">
-                {firstName + " " + lastName}
-              </h2>
-              {age && gender && <p>{age + ", " + gender}</p>}
-              <p>{about}</p>
+            <img
+              alt={`${firstName} ${lastName}`}
+              className="w-20 h-20 rounded-full object-cover cursor-pointer transition-transform hover:scale-105"
+              src={imageUrl}
+              onClick={() => setPreviewImg(imageUrl)}
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = "https://via.placeholder.com/100";
+              }}
+            />
+
+            <div className="ml-4 text-left flex-grow">
+              <h2 className="text-xl font-bold">{firstName} {lastName}</h2>
+              {age && gender && (
+                <p className="text-sm text-gray-500">{age}, {gender}</p>
+              )}
+              <p className="text-sm mt-1">{about}</p>
             </div>
           </div>
         );
       })}
+
+      {/* Modal for image preview */}
+      {previewImg && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50"
+          onClick={() => setPreviewImg(null)}
+        >
+          <img
+            src={previewImg}
+            alt="Full View"
+            className="max-w-[90%] max-h-[90%] rounded-lg shadow-lg border-4 border-white"
+            onClick={(e) => e.stopPropagation()} // Prevent modal from closing when image is clicked
+          />
+        </div>
+      )}
     </div>
   );
 };
+
 export default Connections;

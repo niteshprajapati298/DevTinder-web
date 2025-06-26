@@ -39,8 +39,9 @@ const Login = () => {
         { firstName, lastName, emailId, password },
         { withCredentials: true }
       );
-      dispatch(addUser(res.data.data));
-      return navigate("/profile");
+      dispatch(addUser(res.data));
+    
+      return navigate("/");
     } catch (err) {
       setError(err?.response?.data || "Something went wrong");
     }

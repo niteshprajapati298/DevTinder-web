@@ -4,8 +4,12 @@ import { useDispatch, useSelector } from "react-redux";
 import { addFeed } from "../utils/feedSlice";
 import { useEffect } from "react";
 import UserCard from "./UserCard";
+import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 
 const Feed = () => {
+  const [error, setError] = useState("");
+    const navigate = useNavigate();
   const feed = useSelector((store) => store.feed);
   const dispatch = useDispatch();
 
@@ -17,7 +21,9 @@ const Feed = () => {
       });
       dispatch(addFeed(res?.data?.data));
     } catch (err) {
-      //TODO: handle error
+      setError(err?.response?.data || "Please login");
+      navigate('/login')
+
     }
   };
 

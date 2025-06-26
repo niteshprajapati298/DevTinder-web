@@ -36,8 +36,16 @@ const NavBar = () => {
               className="btn btn-ghost btn-circle avatar"
             >
               <div className="w-10 rounded-full">
-                <img alt="user photo" src={user.photoUrl} />
-              </div>
+  <img
+    alt="user photo"
+    src={
+      user?.photoUrl?.startsWith("http")
+        ? user.photoUrl
+        : `${BASE_URL}${user.photoUrl}`
+    }
+  />
+</div>
+
             </div>
             <ul
               tabIndex={0}

@@ -16,17 +16,17 @@ const Requests = () => {
         { withCredentials: true }
       );
       dispatch(removeRequest(_id));
-    } catch (err) {}
+    } catch (err) { }
   };
 
   const fetchRequests = async () => {
     try {
-      const res = await axios.get(BASE_URL + "/user/requests/received", {
-        withCredentials: true,
+      const res = await axios.get(BASE_URL + "/user/connection/received", {
+        withCredentials: true
       });
 
       dispatch(addRequests(res.data.data));
-    } catch (err) {}
+    } catch (err) { }
   };
 
   useEffect(() => {
@@ -53,10 +53,15 @@ const Requests = () => {
           >
             <div>
               <img
-                alt="photo"
-                className="w-20 h-20 rounded-full"
-                src={photoUrl}
+                alt={`${firstName} ${lastName}`}
+                className="w-20 h-20 rounded-full object-cover"
+                src={
+                  photoUrl?.startsWith("http")
+                    ? photoUrl
+                    : `${BASE_URL}${photoUrl}`
+                }
               />
+
             </div>
             <div className="text-left mx-4 ">
               <h2 className="font-bold text-xl">
