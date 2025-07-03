@@ -17,16 +17,16 @@ const EditProfile = ({ user }) => {
 
   const [photoFile, setPhotoFile] = useState(null);
 
+  // ✅ FIX: Add missing preview state
   const [photoPreview, setPhotoPreview] = useState(
     user?.photoUrl?.startsWith("http")
       ? user.photoUrl
-      : `${BASE_URL}${user?.photoUrl || "/uploads/default.png"}`
+      : "https://via.placeholder.com/150" // fallback if photoUrl isn't set
   );
 
   const [error, setError] = useState("");
   const [showToast, setShowToast] = useState(false);
-
-  const [previewFullImage, setPreviewFullImage] = useState(null); // 👈 NEW
+  const [previewFullImage, setPreviewFullImage] = useState(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -45,10 +45,10 @@ const EditProfile = ({ user }) => {
     setError("");
     try {
       const data = new FormData();
-      Object.entries(formData).forEach(([key, value]) => {
-        data.append(key, value);
-      });
-      if (photoFile) data.append("photo", photoFile);
+      Object.entries(formData).forEach(([key, value]) =>
+        data.append(key, value)
+      );
+      if (photoFile) data.append("photo", photoFile); // MUST be "photo"
 
       const res = await axios.patch(`${BASE_URL}/profile/edit`, data, {
         withCredentials: true,
@@ -59,24 +59,25 @@ const EditProfile = ({ user }) => {
       setShowToast(true);
       setTimeout(() => setShowToast(false), 3000);
     } catch (err) {
-      setError(err?.response?.data || "Something went wrong");
+      setError(err?.response?.data?.error || "Something went wrong");
     }
   };
 
   return (
     <div className="max-w-4xl mx-auto mt-10 bg-base-200 shadow-xl rounded-lg overflow-hidden">
       <div className="flex flex-col md:flex-row">
-        {/* Profile Photo */}
+        {/* Profile Photo Section */}
         <div className="bg-blue-50 p-6 flex flex-col items-center w-full md:w-1/3">
           <img
             src={photoPreview}
             alt="Profile Preview"
             className="w-28 h-28 rounded-full object-cover shadow-md cursor-pointer hover:scale-105 transition-transform"
-            onClick={() => setPreviewFullImage(photoPreview)} // 👈 NEW
+            onClick={() => setPreviewFullImage(photoPreview)}
           />
           <input
             type="file"
             accept="image/*"
+            name="photo"
             className="file-input file-input-bordered file-input-sm mt-3 w-full"
             onChange={handlePhotoChange}
           />
@@ -168,10 +169,10 @@ const EditProfile = ({ user }) => {
         </div>
       )}
 
-      {/* 👇 Image Modal Preview */}
+      {/* Full Image Preview Modal */}
       {previewFullImage && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50"
+          className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50"
           onClick={() => setPreviewFullImage(null)}
         >
           <img

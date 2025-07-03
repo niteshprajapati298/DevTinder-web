@@ -39,13 +39,15 @@ const Login = () => {
         { firstName, lastName, emailId, password },
         { withCredentials: true }
       );
-      dispatch(addUser(res.data));
-    
-      return navigate("/");
+  
+      // Don't log user in, show a success message instead
+      setError("✅ Verification email sent. Please check your inbox.");
+      setIsLoginForm(true); // Switch to login form
     } catch (err) {
       setError(err?.response?.data || "Something went wrong");
     }
   };
+  
 
   return (
     <div className="flex justify-center my-10">
