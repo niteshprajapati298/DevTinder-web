@@ -34,9 +34,14 @@ const EditProfile = ({ user }) => {
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      if (file.size > 3 * 1024 * 1024) {
+        setError("Image too large. Max allowed size is 3MB.");
+        return;
+      }
       setPhotoFile(file);
       setPhotoPreview(URL.createObjectURL(file));
     }
+
   };
 
   const saveProfile = async () => {
@@ -54,6 +59,10 @@ const EditProfile = ({ user }) => {
       });
 
       dispatch(addUser(res.data.data));
+      if (res.data.data?.photoUrl) {
+        setPhotoPreview(`${res.data.data.photoUrl}?t=${Date.now()}`);
+      }
+
       setShowToast(true);
       setTimeout(() => setShowToast(false), 3000);
     } catch (err) {
