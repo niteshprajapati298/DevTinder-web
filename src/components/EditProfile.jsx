@@ -34,15 +34,28 @@ const EditProfile = ({ user }) => {
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+      if (!allowedTypes.includes(file.type)) {
+        setError("Unsupported file format. Only JPG, PNG, and WEBP allowed.");
+        return;
+      }
+  
       if (file.size > 3 * 1024 * 1024) {
         setError("Image too large. Max allowed size is 3MB.");
         return;
       }
+  
+      console.log("Selected file:", {
+        name: file.name,
+        size: file.size,
+        type: file.type,
+      });
+  
       setPhotoFile(file);
       setPhotoPreview(URL.createObjectURL(file));
     }
-
   };
+  
 
   const saveProfile = async () => {
     setError("");
@@ -66,7 +79,7 @@ const EditProfile = ({ user }) => {
       setShowToast(true);
       setTimeout(() => setShowToast(false), 3000);
     } catch (err) {
-      setError(err?.response?.data?.error);
+      setError(err?.response?.data?.error || "can't update profile");
     }
   };
 
