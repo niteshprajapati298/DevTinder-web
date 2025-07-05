@@ -3,7 +3,6 @@ import axios from "axios";
 import { BASE_URL } from "../utils/constants";
 import { useDispatch } from "react-redux";
 import { addUser } from "../utils/userSlice";
-import imageCompression from "browser-image-compression";
 
 const EditProfile = ({ user }) => {
   const dispatch = useDispatch();
@@ -23,50 +22,32 @@ const EditProfile = ({ user }) => {
       ? user.photoUrl
       : "https://via.placeholder.com/150"
   );
+
   const [error, setError] = useState("");
   const [showToast, setShowToast] = useState(false);
   const [previewFullImage, setPreviewFullImage] = useState(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handlePhotoChange = async (e) => {
+  const handlePhotoChange = (e) => {
     const file = e.target.files[0];
-    if (!file) return;
-  
-    // Optional: show a loading message
-    setError("Compressing image...");
-  
-    try {
-      const options = {
-        maxSizeMB: 1,               // Max file size in MB
-        maxWidthOrHeight: 1024,     // Resize to this max dimension
-        useWebWorker: true,
-      };
-  
-      const compressedFile = await imageCompression(file, options);
-  
-      // If compressed size is still above your backend limit
-      if (compressedFile.size > 3 * 1024 * 1024) {
-        setError("Image too large even after compression. Max allowed size is 3MB.");
+    if (file) {
+      if (file.size > 3 * 1024 * 1024) {
+        setError("Image too large. Max allowed size is 3MB.");
         return;
       }
-  
-      setPhotoFile(compressedFile);
-      setPhotoPreview(URL.createObjectURL(compressedFile));
-      setError(""); // Clear previous error if any
-    } catch (err) {
-      setError("Image compression failed.");
-      console.error(err);
+      setPhotoFile(file);
+      setPhotoPreview(URL.createObjectURL(file));
     }
   };
-  
-  
 
   const saveProfile = async () => {
     setError("");
+    setUploadProgress(0);
     try {
       const data = new FormData();
       Object.entries(formData).forEach(([key, value]) =>
@@ -77,6 +58,12 @@ const EditProfile = ({ user }) => {
       const res = await axios.patch(`${BASE_URL}/profile/edit`, data, {
         withCredentials: true,
         headers: { "Content-Type": "multipart/form-data" },
+        onUploadProgress: (progressEvent) => {
+          const percentCompleted = Math.round(
+            (progressEvent.loaded * 100) / progressEvent.total
+          );
+          setUploadProgress(percentCompleted);
+        },
       });
 
       dispatch(addUser(res.data.data));
@@ -86,8 +73,10 @@ const EditProfile = ({ user }) => {
 
       setShowToast(true);
       setTimeout(() => setShowToast(false), 3000);
+      setUploadProgress(0);
     } catch (err) {
-      setError(err?.response?.data?.error || "can't update profile");
+      setUploadProgress(0);
+      setError(err?.response?.data?.error || "Can't update profile");
     }
   };
 
@@ -207,6 +196,16 @@ const EditProfile = ({ user }) => {
               Save
             </button>
           </div>
+
+          {/* Upload Progress Bar */}
+          {uploadProgress > 0 && (
+            <div className="mt-4 w-full bg-gray-300 h-2 rounded-full overflow-hidden">
+              <div
+                className="bg-blue-600 h-full transition-all duration-300"
+                style={{ width: `${uploadProgress}%` }}
+              ></div>
+            </div>
+          )}
         </div>
       </div>
 
