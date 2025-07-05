@@ -66,7 +66,7 @@ const EditProfile = ({ user }) => {
       setShowToast(true);
       setTimeout(() => setShowToast(false), 3000);
     } catch (err) {
-      setError(err?.response?.data?.error || "Something went wrong");
+      setError(err?.response?.data?.error);
     }
   };
 
