@@ -20,7 +20,7 @@ const Body = () => {
       });
       dispatch(addUser(res.data));
     } catch (err) {
-      if (err.status === 401) {
+      if (err?.response?.status === 401) {
         navigate("/login");
       }
     }
@@ -31,11 +31,17 @@ const Body = () => {
   }, []);
 
   return (
-    <div>
+    <div className="flex flex-col min-h-screen">
       <NavBar />
-      <Outlet />
+
+      {/* Scrollable main content */}
+      <main className="flex-1 overflow-y-auto px-4 py-6">
+        <Outlet />
+      </main>
+
       <Footer />
     </div>
   );
 };
+
 export default Body;
