@@ -3,6 +3,7 @@ import axios from "axios";
 import { BASE_URL } from "../utils/constants";
 import { useDispatch } from "react-redux";
 import { addUser } from "../utils/userSlice";
+import imageCompression from "browser-image-compression";
 
 const EditProfile = ({ user }) => {
   const dispatch = useDispatch();
@@ -31,30 +32,37 @@ const EditProfile = ({ user }) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handlePhotoChange = (e) => {
+  const handlePhotoChange = async (e) => {
     const file = e.target.files[0];
-    if (file) {
-      const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
-      if (!allowedTypes.includes(file.type)) {
-        setError("Unsupported file format. Only JPG, PNG, and WEBP allowed.");
+    if (!file) return;
+  
+    // Optional: show a loading message
+    setError("Compressing image...");
+  
+    try {
+      const options = {
+        maxSizeMB: 1,               // Max file size in MB
+        maxWidthOrHeight: 1024,     // Resize to this max dimension
+        useWebWorker: true,
+      };
+  
+      const compressedFile = await imageCompression(file, options);
+  
+      // If compressed size is still above your backend limit
+      if (compressedFile.size > 3 * 1024 * 1024) {
+        setError("Image too large even after compression. Max allowed size is 3MB.");
         return;
       }
   
-      if (file.size > 3 * 1024 * 1024) {
-        setError("Image too large. Max allowed size is 3MB.");
-        return;
-      }
-  
-      console.log("Selected file:", {
-        name: file.name,
-        size: file.size,
-        type: file.type,
-      });
-  
-      setPhotoFile(file);
-      setPhotoPreview(URL.createObjectURL(file));
+      setPhotoFile(compressedFile);
+      setPhotoPreview(URL.createObjectURL(compressedFile));
+      setError(""); // Clear previous error if any
+    } catch (err) {
+      setError("Image compression failed.");
+      console.error(err);
     }
   };
+  
   
 
   const saveProfile = async () => {
