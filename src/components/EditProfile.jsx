@@ -95,7 +95,7 @@ const EditProfile = ({ user }) => {
       setUploadProgress(0);
     } catch (err) {
       setUploadProgress(0);
-      setError(err?.response?.data?.error || "Can't update profile");
+      setError(err?.response?.data?.error || "Something went wrong");
     }
   };
 
