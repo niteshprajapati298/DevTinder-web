@@ -8,6 +8,7 @@ import Feed from "./components/Feed";
 import Connections from "./components/Connections";
 import Requests from "./components/Requests";
 import EmailVerify from "./components/EmailVerify"; // ✅ New import
+import ChatPage from "./components/ChatPage";
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
             <Route path="/profile" element={<Profile />} />
             <Route path="/connections" element={<Connections />} />
             <Route path="/requests" element={<Requests />} />
+            <Route path="/chat" element={<ChatPage />} />
           </Route>
 
           {/* ✅ Email verification route */}

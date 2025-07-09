@@ -3,11 +3,13 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { BASE_URL } from "../utils/constants";
 import { addConnections } from "../utils/conectionSlice";
+import { Link } from "react-router-dom";
+import { BsChatDots } from "react-icons/bs"; // install with: npm install react-icons
 
 const Connections = () => {
   const connections = useSelector((store) => store.connections);
   const dispatch = useDispatch();
-  const [previewImg, setPreviewImg] = useState(null); // for image modal
+  const [previewImg, setPreviewImg] = useState(null);
 
   const fetchConnections = async () => {
     try {
@@ -43,6 +45,7 @@ const Connections = () => {
             key={_id}
             className="flex items-center bg-base-300 rounded-lg shadow-md p-4 m-4 w-11/12 md:w-1/2 mx-auto"
           >
+            {/* User Avatar */}
             <img
               alt={`${firstName} ${lastName}`}
               className="w-20 h-20 rounded-full object-cover cursor-pointer transition-transform hover:scale-105"
@@ -54,6 +57,7 @@ const Connections = () => {
               }}
             />
 
+            {/* User Info */}
             <div className="ml-4 text-left flex-grow">
               <h2 className="text-xl font-bold">{firstName} {lastName}</h2>
               {age && gender && (
@@ -61,6 +65,13 @@ const Connections = () => {
               )}
               <p className="text-sm mt-1">{about}</p>
             </div>
+            <Link
+              to="/chat"
+              state={{ user }} // pass user as route state
+              title="Start Chat"
+            >
+              <BsChatDots/>
+            </Link>
           </div>
         );
       })}
@@ -75,7 +86,7 @@ const Connections = () => {
             src={previewImg}
             alt="Full View"
             className="max-w-[90%] max-h-[90%] rounded-lg shadow-lg border-4 border-white"
-            onClick={(e) => e.stopPropagation()} // Prevent modal from closing when image is clicked
+            onClick={(e) => e.stopPropagation()}
           />
         </div>
       )}
