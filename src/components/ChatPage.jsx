@@ -12,8 +12,10 @@ const ChatPage = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
-  const chatBoxRef = useRef(null);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [showChat, setShowChat] = useState(false);
 
+  const chatBoxRef = useRef(null);
   const location = useLocation();
   const dispatch = useDispatch();
   const currentUserId = useSelector((store) => store.user?._id);
@@ -60,7 +62,38 @@ const ChatPage = () => {
     setMessages([]);
     setPage(1);
     setHasMore(true);
+    setShowChat(true);
     await fetchMessages(user, 1);
+  };
+
+  const handleSendMessage = () => {
+    if (message.trim() === "") return;
+
+    const tempId = `temp-${Date.now()}`;
+    const msgData = {
+      fromUserId: currentUserId,
+      toUserId: selectedUser._id,
+      message,
+      _id: tempId,
+    };
+
+    socket.emit("send_message", msgData);
+    setMessages((prev) => [...prev, msgData]);
+    setMessage("");
+  };
+
+  const handleDeleteMessage = async (id) => {
+    try {
+      await axios.delete(`${BASE_URL}/messages/${id}`, { withCredentials: true });
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg._id === id ? { ...msg, deleted: true } : msg
+        )
+      );
+    } catch (err) {
+      console.error("Error deleting message:", err);
+      alert("Failed to delete message");
+    }
   };
 
   const loadMoreMessages = async () => {
@@ -80,6 +113,16 @@ const ChatPage = () => {
       setSelectedUser(location.state.user);
       fetchMessages(location.state.user, 1);
     }
+
+    const handleResize = () => {
+      const mobile = window.innerWidth <= 768;
+      setIsMobile(mobile);
+      if (!mobile) setShowChat(true);
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   useEffect(() => {
@@ -116,169 +159,146 @@ const ChatPage = () => {
     return () => socket.off("receive_message");
   }, [selectedUser]);
 
-  // scroll to bottom on new message
   useEffect(() => {
     if (chatBoxRef.current) {
       chatBoxRef.current.scrollTop = chatBoxRef.current.scrollHeight;
     }
   }, [messages]);
 
-  const handleSendMessage = () => {
-    if (message.trim() === "") return;
-
-    const tempId = `temp-${Date.now()}`;
-
-    const msgData = {
-      fromUserId: currentUserId,
-      toUserId: selectedUser._id,
-      message,
-      _id: tempId, // temp ID for React key
-    };
-
-    socket.emit("send_message", msgData);
-    setMessages((prev) => [...prev, msgData]);
-    setMessage("");
-  };
-  const handleDeleteMessage = async (id) => {
-    try {
-      await axios.delete(`${BASE_URL}/messages/${id}`, { withCredentials: true });
-
-      setMessages((prev) => prev.filter((msg) => msg._id !== id));
-    } catch (err) {
-      console.error("Error deleting message:", err);
-      alert("Failed to delete message");
-    }
-  };
-
   return (
     <div className="flex h-screen pt-16 bg-base-100">
-      {/* Sidebar */}
-      <div className="w-[30%] max-w-sm border-r border-gray-300 bg-base-200 hidden md:flex flex-col">
-        <h2 className="text-2xl font-bold p-6 border-b border-base-300">Chats</h2>
-        <div className="flex-1 overflow-y-auto">
-          {connections?.map((user) => {
-            const imageUrl = user.photoUrl?.startsWith("http")
-              ? user.photoUrl
-              : `${BASE_URL}${user.photoUrl}`;
+      {/* Sidebar Connections */}
+      {(!isMobile || (isMobile && !showChat)) && (
+        <div className="w-full md:w-[30%] max-w-sm border-r border-gray-300 bg-base-200 flex flex-col">
+          <h2 className="text-2xl font-bold p-6 border-b border-base-300">Chats</h2>
+          <div className="flex-1 overflow-y-auto">
+            {connections?.map((user) => {
+              const imageUrl = user.photoUrl?.startsWith("http")
+                ? user.photoUrl
+                : `${BASE_URL}${user.photoUrl}`;
 
-            return (
-              <div
-                key={user._id}
-                onClick={() => handleSelectUser(user)}
-                className="flex items-center gap-4 p-4 hover:bg-base-300 cursor-pointer transition"
-              >
-                <img
-                  src={imageUrl}
-                  alt={user.firstName}
-                  className="w-12 h-12 rounded-full object-cover border border-white"
-                />
-                <div>
-                  <h3 className="font-semibold text-base">{user.firstName} {user.lastName}</h3>
-                  <p className="text-xs text-gray-500 truncate max-w-[150px]">{user.about}</p>
+              return (
+                <div
+                  key={user._id}
+                  onClick={() => handleSelectUser(user)}
+                  className="flex items-center gap-4 p-4 hover:bg-base-300 cursor-pointer transition"
+                >
+                  <img
+                    src={imageUrl}
+                    alt={user.firstName}
+                    className="w-12 h-12 rounded-full object-cover border border-white"
+                  />
+                  <div>
+                    <h3 className="font-semibold text-base">
+                      {user.firstName} {user.lastName}
+                    </h3>
+                    <p className="text-xs text-gray-500 truncate max-w-[150px]">
+                      {user.about}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Chat Area */}
-      <div className="flex-1 flex flex-col bg-gradient-to-br from-base-100 to-base-200">
-        {selectedUser ? (
-          <>
-            {/* Chat Header */}
-            <div className="flex items-center gap-4 p-4 bg-base-300 sticky top-0 z-20 shadow">
-              <img
-                src={
-                  selectedUser.photoUrl?.startsWith("http")
-                    ? selectedUser.photoUrl
-                    : `${BASE_URL}${selectedUser.photoUrl}`
-                }
-                className="w-12 h-12 rounded-full object-cover border"
-                alt={selectedUser.firstName}
-              />
-              <div>
-                <h2 className="text-lg font-semibold">
-                  {selectedUser.firstName} {selectedUser.lastName}
-                </h2>
-                <p className="text-sm text-gray-500">
-                  {selectedUser.age}, {selectedUser.gender}
-                </p>
+      {(!isMobile || (isMobile && showChat)) && (
+        <div className="flex-1 flex flex-col bg-gradient-to-br from-base-100 to-base-200">
+          {selectedUser ? (
+            <>
+              {/* Chat Header */}
+              <div className="flex items-center gap-4 p-4 bg-base-300 sticky top-0 z-20 shadow">
+                {isMobile && (
+                  <button onClick={() => setShowChat(false)} className="text-xl font-bold mr-2">←</button>
+                )}
+                <img
+                  src={
+                    selectedUser.photoUrl?.startsWith("http")
+                      ? selectedUser.photoUrl
+                      : `${BASE_URL}${selectedUser.photoUrl}`
+                  }
+                  className="w-12 h-12 rounded-full object-cover border"
+                  alt={selectedUser.firstName}
+                />
+                <div>
+                  <h2 className="text-lg font-semibold">
+                    {selectedUser.firstName} {selectedUser.lastName}
+                  </h2>
+                  <p className="text-sm text-gray-500">
+                    {selectedUser.age}, {selectedUser.gender}
+                  </p>
+                </div>
               </div>
+
+              {/* Chat Messages */}
+              <div
+                ref={chatBoxRef}
+                className="flex-1 p-4 overflow-y-auto space-y-3 bg-base-100"
+              >
+                {messages.map((msg) => {
+                  const isCurrentUser = msg.fromUserId === currentUserId;
+                  return (
+                    <div
+                      key={`${msg._id}-${msg.deleted}`}
+                      className={`flex ${isCurrentUser ? "justify-end" : "justify-start"}`}
+                    >
+                      <div className="relative group max-w-[85%] md:max-w-[70%]">
+                        <div
+                          className={`px-4 py-2 rounded-2xl text-white shadow transition-all duration-300 ${
+                            isCurrentUser
+                              ? "bg-blue-600 rounded-br-none"
+                              : "bg-gray-700 rounded-bl-none"
+                          } break-words whitespace-pre-wrap`}
+                        >
+                          {msg.deleted ? (
+                            <span className="italic text-gray-300">This message was deleted</span>
+                          ) : (
+                            msg.message
+                          )}
+                        </div>
+                        {isCurrentUser && !msg.deleted && (
+                          <button
+                            onClick={() => handleDeleteMessage(msg._id)}
+                            className="absolute -top-2 -right-2 hidden group-hover:flex items-center justify-center w-6 h-6 text-xs text-white bg-red-500 hover:bg-red-600 rounded-full shadow"
+                            title="Delete"
+                          >
+                            ✕
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Message Input */}
+              <div className="p-4 bg-base-300 sticky bottom-0 border-t border-base-200">
+                <div className="flex items-center gap-3">
+                  <input
+                    type="text"
+                    maxLength={100}
+                    className="input input-bordered w-full text-sm"
+                    placeholder="Type a message..."
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
+                  />
+                  <button className="btn btn-primary px-6" onClick={handleSendMessage}>
+                    Send
+                  </button>
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="flex items-center justify-center h-full text-gray-400 text-xl">
+              Select a user to start chatting
             </div>
-
-            {/* Chat Messages */}
-            <div
-  ref={chatBoxRef}
-  className="flex-1 p-4 overflow-y-auto space-y-3 bg-base-100"
->
-  {messages.map((msg) => {
-    const isCurrentUser = msg.fromUserId === currentUserId;
-
-    return (
-      <div
-        key={`${msg._id}-${msg.deleted}`} // avoid duplicate key issues
-        className={`flex ${isCurrentUser ? "justify-end" : "justify-start"}`}
-      >
-        <div className="relative group max-w-[85%] md:max-w-[70%]">
-          <div
-            className={`px-4 py-2 rounded-2xl text-white shadow transition-all duration-300 ${
-              isCurrentUser
-                ? "bg-blue-600 rounded-br-none"
-                : "bg-gray-700 rounded-bl-none"
-            } break-words whitespace-pre-wrap`}
-          >
-            {msg.deleted ? (
-              <span className="italic text-gray-300">This message was deleted</span>
-            ) : (
-              msg.message
-            )}
-          </div>
-
-          {/* Delete button */}
-          {isCurrentUser && !msg.deleted && (
-            <button
-              onClick={() => handleDeleteMessage(msg._id)}
-              className="absolute -top-2 -right-2 hidden group-hover:flex items-center justify-center w-6 h-6 text-xs text-white bg-red-500 hover:bg-red-600 rounded-full shadow"
-              title="Delete"
-            >
-              ✕
-            </button>
           )}
         </div>
-      </div>
-    );
-  })}
-</div>
-
-
-
-            
-            <div className="p-4 bg-base-300 sticky bottom-0 border-t border-base-200">
-              <div className="flex items-center gap-3">
-                <input
-                  type="text"
-                  maxLength={100}
-                  className="input input-bordered w-full text-sm"
-                  placeholder="Type a message..."
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
-                />
-                <button className="btn btn-primary px-6" onClick={handleSendMessage}>
-                  Send
-                </button>
-              </div>
-            </div>
-          </>
-        ) : (
-          <div className="flex items-center justify-center h-full text-gray-400 text-xl">
-            Select a user to start chatting
-          </div>
-        )}
-      </div>
+      )}
     </div>
-
   );
 };
 
