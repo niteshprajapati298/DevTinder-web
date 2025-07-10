@@ -258,6 +258,7 @@ const ChatPage = () => {
               <div className="flex items-center gap-3">
                 <input
                   type="text"
+                  maxLength={100}
                   className="input input-bordered w-full text-sm"
                   placeholder="Type a message..."
                   value={message}
