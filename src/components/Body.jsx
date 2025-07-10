@@ -1,4 +1,4 @@
-import { Outlet, useNavigate } from "react-router-dom";
+import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import NavBar from "./NavBar";
 import Footer from "./Footer";
 import axios from "axios";
@@ -11,6 +11,10 @@ const Body = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const userData = useSelector((store) => store.user);
+  const location = useLocation();
+
+  // Hide footer and disable scroll when in chat
+  const isChatPage = location.pathname.startsWith("/chat");
 
   const fetchUser = async () => {
     if (userData) return;
@@ -30,16 +34,26 @@ const Body = () => {
     fetchUser();
   }, []);
 
+  // Disable scroll on chat page
+  useEffect(() => {
+    if (isChatPage) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "auto";
+    }
+
+    return () => {
+      document.body.style.overflow = "auto"; // cleanup
+    };
+  }, [isChatPage]);
+
   return (
     <div className="flex flex-col min-h-screen">
       <NavBar />
-
-      {/* Scrollable main content */}
-      <main className="flex-1 ">
+      <main className="flex-1">
         <Outlet />
       </main>
-
-      <Footer />
+      {!isChatPage && <Footer />}
     </div>
   );
 };

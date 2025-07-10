@@ -22,7 +22,8 @@ const EmailVerify = () => {
   }, [token, navigate]);
 
   return (
-    <div className="flex justify-center items-center h-screen">
+  
+    <div className="pt-16 flex justify-center items-center h-screen">
       <div className="p-6 bg-base-300 shadow-lg rounded">
         <h2 className="text-lg font-bold">{message}</h2>
       </div>

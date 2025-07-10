@@ -33,7 +33,7 @@ const Connections = () => {
   }
 
   return (
-    <div className="text-center my-10">
+    <div className="text-center my-10 pt-16">
       <h1 className="text-3xl font-semibold text-white mb-6">Connections</h1>
 
       {connections.map((user) => {
@@ -70,7 +70,7 @@ const Connections = () => {
               state={{ user }} // pass user as route state
               title="Start Chat"
             >
-              <BsChatDots/>
+              <BsChatDots className="text-4xl"/>
             </Link>
           </div>
         );

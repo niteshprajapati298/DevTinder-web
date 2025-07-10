@@ -28,7 +28,7 @@ const UserCard = ({ user }) => {
 
   return (
     <>
-      <div className="card bg-base-300 w-full max-w-sm h-[90vh] md:h-[600px] shadow-xl overflow-hidden flex flex-col mx-auto">
+      <div className="pt-16 card bg-base-300 w-full max-w-sm h-[90vh] md:h-[600px] shadow-xl overflow-hidden flex flex-col mx-auto">
         {/* Top Image Section (70%) */}
         <div
           className="cursor-pointer h-[70%] w-full"

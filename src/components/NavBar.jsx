@@ -20,7 +20,8 @@ const NavBar = () => {
   };
 
   return (
-    <div className="navbar bg-base-300">
+    <div className="navbar bg-base-300 fixed top-0 left-0 w-full z-50 shadow">
+
       <div className="flex-1">
       <Logo/>
       </div>

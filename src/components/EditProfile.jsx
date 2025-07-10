@@ -100,7 +100,7 @@ const EditProfile = ({ user }) => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto mt-10 mb-28 bg-base-200 shadow-xl rounded-lg overflow-hidden">
+    <div className="pt-16 max-w-4xl mx-auto mt-10 mb-28 bg-base-200 shadow-xl rounded-lg overflow-hidden">
       <div className="flex flex-col md:flex-row bg-base-200 rounded-xl shadow-lg overflow-hidden">
         {/* Profile Photo Section */}
         <div className="text-neutral-content p-6 flex flex-col items-center justify-center w-full md:w-1/3 gap-4">
