@@ -67,7 +67,6 @@ const Connections = () => {
             </div>
             <Link
               to="/chat"
-              state={{ user }} // pass user as route state
               title="Start Chat"
             >
               <BsChatDots className="text-4xl"/>
