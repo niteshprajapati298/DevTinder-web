@@ -4,7 +4,7 @@ import { io } from "socket.io-client";
 //   withCredentials: true,
 // });
 
-const socket = io("https://tinderdev.xyz", {
+const socket = io("http://tinderdev.xyz", {
   withCredentials: true,
   transports: ["websocket"], 
 });

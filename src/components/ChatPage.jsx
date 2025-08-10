@@ -26,7 +26,8 @@ const ChatPage = () => {
       const res = await axios.get(`${BASE_URL}/user/connections`, {
         withCredentials: true,
       });
-      dispatch(addConnections(res.data.connection));
+      dispatch(addConnections(res.data.connections));
+      console.log(res.data.connections)
     } catch (err) {
       console.error("Error fetching connections:", err);
     }
@@ -205,7 +206,7 @@ const ChatPage = () => {
 
       {/* Chat Area */}
       {(!isMobile || (isMobile && showChat)) && (
-        <div className="flex-1 flex flex-col bg-gradient-to-br from-base-100 to-base-200">
+        <div className="flex-1 flex flex-col bg-gradient-to-br from-base-100 to-base-200 min-h-screen pb-[70px] md:pb-0">
           {selectedUser ? (
             <>
               {/* Chat Header */}
@@ -235,7 +236,7 @@ const ChatPage = () => {
               {/* Chat Messages */}
               <div
                 ref={chatBoxRef}
-                className="flex-1 p-4 overflow-y-auto space-y-3 bg-base-100"
+                className="flex-1 p-4 pb-8 overflow-y-auto space-y-3 bg-base-100"
               >
                 {messages.map((msg) => {
                   const isCurrentUser = msg.fromUserId === currentUserId;
@@ -246,11 +247,10 @@ const ChatPage = () => {
                     >
                       <div className="relative group max-w-[85%] md:max-w-[70%]">
                         <div
-                          className={`px-4 py-2 rounded-2xl text-white shadow transition-all duration-300 ${
-                            isCurrentUser
+                          className={`px-4 py-2 rounded-2xl text-white shadow transition-all duration-300 ${isCurrentUser
                               ? "bg-blue-600 rounded-br-none"
                               : "bg-gray-700 rounded-bl-none"
-                          } break-words whitespace-pre-wrap`}
+                            } break-words whitespace-pre-wrap`}
                         >
                           {msg.deleted ? (
                             <span className="italic text-gray-300">This message was deleted</span>
