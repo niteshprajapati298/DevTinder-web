@@ -4,7 +4,7 @@ import { io } from "socket.io-client";
 //   withCredentials: true,
 // });
 
-const socket = io("http://tinderdev.xyz", {
+const socket = io("/api", {
   withCredentials: true,
   transports: ["websocket"], 
 });
