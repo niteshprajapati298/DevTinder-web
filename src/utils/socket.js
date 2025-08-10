@@ -1,13 +1,14 @@
-import { io } from "socket.io-client";
 
 // const socket = io(BASE_URL, {
 //   withCredentials: true,
 // });
+import { io } from "socket.io-client";
 
-const socket = io("/api", {
+const socket = io("https://tinderdev.xyz", {
+  path: "/api/socket.io/",
   withCredentials: true,
-  transports: ["websocket"], 
+  transports: ["websocket"],
 });
 
-
 export default socket;
+
