@@ -45,7 +45,7 @@ const Connections = () => {
         return (
           <div
             key={_id}
-            className="flex items-center bg-base-300 rounded-lg shadow-md p-4 m-4 w-11/12 md:w-1/2 mx-auto"
+            className=" flex items-center bg-base-300 rounded-lg shadow-md p-4 m-4 w-11/12 md:w-1/2 mx-auto"
           >
             {/* User Avatar */}
             <img
